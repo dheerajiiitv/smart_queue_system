@@ -67,6 +67,8 @@ class PersonDetect:
     def check_plugin(self, plugin):
         '''
         TODO: This method needs to be completed by you
+        # NOT NEEDED
+        
         '''
         raise NotImplementedError
         
@@ -124,6 +126,10 @@ def main(args):
     model=args.model
     device=args.device
     visualise=args.visualise
+    queue_param = args.queue_param
+    threshold = args.threshold
+    
+    
 
     start=time.time()
     pd=PersonDetect()
@@ -139,36 +145,39 @@ def main(args):
     # # For Transport 
     # queue.add_queue([50, 90, 838, 794])
     # queue.add_queue([852, 74, 1430, 841])
-
-
-    queue=Queue()
-    queue.add_queue([620, 1, 915, 562])
-    queue.add_queue([1000, 1, 1264, 461])
-    video_file=args.video
-    cap=cv2.VideoCapture(video_file)
-    width = int(cap.get(3))
-    height = int(cap.get(4))
-    i = 0
-    while cap.isOpened():
-        ret, frame=cap.read()
-        if not ret:
-            continue
-
-       
     
-        if visualise:
-            coords, image=pd.predict(frame, width, height)
-            num_people=queue.check_coords(coords)
-#             cv2.imwrite("frame"+str(i)+".jpg", image)
-            i+=1
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        else:
-            _,coords=pd.predict(frame, width, height)
-#             print(coords)
-
-        print("Total People in frame = ", len(coords))
-        print("Number of people in queue = ",num_people)
+    
+    
+    try:
+        queue=Queue()
+        queue_list = np.load(queue_param)
+        for i in queue_list:
+            queue.add_queue(i)
+        video_file=args.video
+        cap=cv2.VideoCapture(video_file)
+        width = int(cap.get(3))
+        height = int(cap.get(4))
+        frame_count = 0
+        while cap.isOpened():
+            ret, frame=cap.read()
+            if ret:
+                
+                if visualise:
+                    coords, image=pd.predict(frame, width, height)
+                    num_people=queue.check_coords(coords)
+        #             cv2.imwrite("frame"+str(i)+".jpg", image)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+                else:
+                    _,coords=pd.predict(frame, width, height)
+        #             print(coords)
+                if frame_count%24 == 0
+                    print("Total People in frame = ", len(coords))
+                    print("Number of people in queue = ",num_people)
+                    
+                frame_count+=1
+    except Exception as e:
+        print("Error in Inference", e)
 
     cap.release()
     cv2.destroyAllWindows()
